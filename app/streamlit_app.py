@@ -153,8 +153,9 @@ with tab1:
             df_filtered, x='price_usd', nbins=50,
             title="Распределение цен (USD/мес)",
             color_discrete_sequence=['#e94560'],
-            labels={'price_usd': 'Цена (USD/мес)', 'count': 'Количество объявлений'},
+            labels={'price_usd': 'Цена (USD/мес)'},
         )
+        fig.update_yaxes(title_text='Количество объявлений')
         fig.update_layout(showlegend=False, height=400)
         st.plotly_chart(fig, use_container_width=True)
 
@@ -200,8 +201,9 @@ with tab2:
         title="Распределение цен по комнатам",
         barmode='overlay', nbins=40,
         color_discrete_sequence=px.colors.qualitative.Bold,
-        labels={'price_usd': 'Цена (USD/мес)', 'count': 'Количество', 'rooms': 'Комнат'},
+        labels={'price_usd': 'Цена (USD/мес)', 'rooms': 'Комнат'},
     )
+    fig.update_yaxes(title_text='Количество')
     fig.update_layout(height=400)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -404,21 +406,7 @@ with tab5:
             else:
                 st.info("Нет данных по станциям метро. Данные появятся после нескольких дней сбора.")
 
-            # Распределение по состоянию
-            if 'condition' in df_ts5.columns:
-                cond_counts = df_ts5['condition'].value_counts().reset_index()
-                cond_counts.columns = ['condition', 'count']
-                cond_counts = cond_counts.dropna()
 
-                if not cond_counts.empty:
-                    fig = px.pie(
-                        cond_counts,
-                        values='count', names='condition',
-                        title="Распределение по состоянию квартир",
-                        color_discrete_sequence=px.colors.qualitative.Set2,
-                    )
-                    fig.update_layout(height=400)
-                    st.plotly_chart(fig, use_container_width=True)
 
 # ── TAB 6: НА КАРТЕ ──
 with tab6:
