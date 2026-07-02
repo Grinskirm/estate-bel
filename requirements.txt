@@ -1,0 +1,9 @@
+streamlit>=1.28
+pandas>=1.5
+numpy>=1.24
+plotly>=5.14
+scikit-learn>=1.2
+xgboost>=1.7
+joblib>=1.2
+optuna>=3.3
+requests>=2.31

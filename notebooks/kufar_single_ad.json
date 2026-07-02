@@ -1,0 +1,535 @@
+{
+  "account_id": "OjPulIDiN8roTFCVufBLxzA",
+  "account_parameters": [
+    {
+      "pl": "Адрес",
+      "vl": "",
+      "p": "address",
+      "v": "Михаила Савицкого ул, 4, Минск",
+      "pu": "ad",
+      "g": [
+        {
+          "gi": 4,
+          "gl": "Местоположение",
+          "go": 4,
+          "po": 1
+        }
+      ]
+    },
+    {
+      "pl": "Имя",
+      "vl": "",
+      "p": "name",
+      "v": "Tatsiana ",
+      "pu": "nme"
+    }
+  ],
+  "ad_id": 1074526069,
+  "ad_link": "https://re.kufar.by/vi/1074526069",
+  "ad_parameters": [
+    {
+      "pl": "Тип сделки",
+      "vl": "Долгосрочная аренда",
+      "p": "type",
+      "v": "let",
+      "pu": "typ"
+    },
+    {
+      "pl": "Категория",
+      "vl": "Квартиры",
+      "p": "category",
+      "v": 1010,
+      "pu": "cat"
+    },
+    {
+      "pl": "Количество спальных мест",
+      "vl": "2",
+      "p": "flat_rent_couchettes",
+      "v": "2",
+      "pu": "frc"
+    },
+    {
+      "pl": "Микрорайон",
+      "vl": "Минск-Мир",
+      "p": "re_district",
+      "v": "170",
+      "pu": "red",
+      "g": [
+        {
+          "gi": 4,
+          "gl": "Местоположение",
+          "go": 4,
+          "po": 5
+        }
+      ]
+    },
+    {
+      "pl": "Комнат",
+      "vl": "3",
+      "p": "rooms",
+      "v": "3",
+      "pu": "rms"
+    },
+    {
+      "pl": "Общая площадь",
+      "vl": "",
+      "p": "size",
+      "v": 57,
+      "pu": "st",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 10
+        },
+        {
+          "gi": 1,
+          "go": 1,
+          "po": 20
+        }
+      ]
+    },
+    {
+      "pl": "Жилая площадь",
+      "vl": "",
+      "p": "size_living_space",
+      "v": 53,
+      "pu": "sls",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 15
+        },
+        {
+          "gi": 1,
+          "go": 1,
+          "po": 25
+        }
+      ]
+    },
+    {
+      "pl": "Площадь кухни",
+      "vl": "",
+      "p": "size_kitchen",
+      "v": 18,
+      "pu": "skt",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 20
+        },
+        {
+          "gi": 1,
+          "go": 1,
+          "po": 30
+        }
+      ]
+    },
+    {
+      "pl": "Санузел",
+      "vl": "Совмещенный",
+      "p": "bathroom",
+      "v": "2",
+      "pu": "bth"
+    },
+    {
+      "pl": "Балкон",
+      "vl": "Лоджия",
+      "p": "balcony",
+      "v": "3",
+      "pu": "blc"
+    },
+    {
+      "pl": "Ремонт",
+      "vl": "Евро",
+      "p": "flat_repair",
+      "v": "5",
+      "pu": "flrp"
+    },
+    {
+      "pl": "Обустройство быта",
+      "vl": [
+        "Wi-Fi",
+        "Телевизор",
+        "Мебель",
+        "Утюг"
+      ],
+      "p": "flat_improvement",
+      "v": [
+        1,
+        2,
+        6,
+        5
+      ],
+      "pu": "fli",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 30
+        }
+      ]
+    },
+    {
+      "pl": "В ванной",
+      "vl": [
+        "Ванна",
+        "Стиральная машина",
+        "Фен",
+        "Комплект полотенец"
+      ],
+      "p": "flat_bath",
+      "v": [
+        6,
+        3,
+        5,
+        4
+      ],
+      "pu": "flb",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 40
+        }
+      ]
+    },
+    {
+      "pl": "На кухне",
+      "vl": [
+        "Холодильник",
+        "СВЧ-печь",
+        "Посудомоечная машина",
+        "Посуда/столовые приборы",
+        "Электрическая плита"
+      ],
+      "p": "flat_kitchen",
+      "v": [
+        1,
+        2,
+        3,
+        4,
+        7
+      ],
+      "pu": "fkn",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 45
+        }
+      ]
+    },
+    {
+      "pl": "Кому сдается",
+      "vl": [
+        "Студентам",
+        "Парам"
+      ],
+      "p": "flat_rent_for_whom",
+      "v": [
+        1,
+        4
+      ],
+      "pu": "ffw"
+    },
+    {
+      "pl": "Предоплата",
+      "vl": "2 месяца",
+      "p": "flat_rent_prepayment",
+      "v": "10",
+      "pu": "frp",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 80
+        }
+      ]
+    },
+    {
+      "pl": "Этаж",
+      "vl": [
+        "2"
+      ],
+      "p": "floor",
+      "v": [
+        2
+      ],
+      "pu": "fl"
+    },
+    {
+      "pl": "Этажность дома",
+      "vl": [
+        "25"
+      ],
+      "p": "re_number_floors",
+      "v": [
+        25
+      ],
+      "pu": "nmfl",
+      "g": [
+        {
+          "gi": 1,
+          "go": 1,
+          "po": 10
+        },
+        {
+          "gi": 3,
+          "gl": "О доме",
+          "go": 3,
+          "po": 10
+        }
+      ]
+    },
+    {
+      "pl": "Материал стен",
+      "vl": "Каркасно-блочный",
+      "p": "house_type",
+      "v": "10",
+      "pu": "hst"
+    },
+    {
+      "pl": "Год постройки",
+      "vl": "2023",
+      "p": "year_built",
+      "v": 2023,
+      "pu": "yb",
+      "g": [
+        {
+          "gi": 1,
+          "go": 1,
+          "po": 15
+        },
+        {
+          "gi": 3,
+          "gl": "О доме",
+          "go": 3,
+          "po": 1
+        }
+      ]
+    },
+    {
+      "pl": "Окна выходят",
+      "vl": [
+        "На улицу"
+      ],
+      "p": "flat_windows_side",
+      "v": [
+        4
+      ],
+      "pu": "fws",
+      "g": [
+        {
+          "gi": 2,
+          "gl": "О квартире",
+          "go": 2,
+          "po": 70
+        }
+      ]
+    },
+    {
+      "pl": "Обустройство дома",
+      "vl": [
+        "Лифт",
+        "Пандус",
+        "Домофон"
+      ],
+      "p": "flat_building_improvements",
+      "v": [
+        1,
+        2,
+        7
+      ],
+      "pu": "fbi",
+      "g": [
+        {
+          "gi": 3,
+          "gl": "О доме",
+          "go": 3,
+          "po": 20
+        }
+      ]
+    },
+    {
+      "pl": "Регион",
+      "vl": "Минск",
+      "p": "region",
+      "v": 7,
+      "pu": "rgn"
+    },
+    {
+      "pl": "Город / Район",
+      "vl": "Октябрьский",
+      "p": "area",
+      "v": "28",
+      "pu": "ar"
+    },
+    {
+      "pl": "Тип оплаты",
+      "vl": "Цена",
+      "p": "remuneration_type",
+      "v": "1",
+      "pu": "rtr"
+    },
+    {
+      "pl": "Яндекс координаты",
+      "vl": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "p": "address_tags_yandex",
+      "v": [
+        "country-belarus~province-minsk~locality-minsk~street-ulica_mihaila_savickogo~house-4",
+        "country-belarus~province-minsk~locality-minsk~street-ulica_mihaila_savickogo",
+        "country-belarus~province-minsk~locality-minsk",
+        "country-belarus~province-minsk",
+        "country-belarus",
+        "country-belarus~province-minsk~locality-minsk~coder_district-28",
+        "country-belarus~province-minsk~locality-minsk~coder_mdistrict-170",
+        "country-belarus~province-minsk~locality-minsk~coder_apartment_complex-315"
+      ],
+      "pu": "gtsy"
+    },
+    {
+      "pl": "Координаты",
+      "vl": [
+        "",
+        ""
+      ],
+      "p": "coordinates",
+      "v": [
+        27.528737,
+        53.869078
+      ],
+      "pu": "gbx"
+    }
+  ],
+  "body": null,
+  "body_short": "Отличная квартира с двумя отдельными спальными в центре города, свободная от курения, на первом этаже зал для занятий спортом, озон, рядом магазины, к",
+  "calculator": [
+    {
+      "currency": "USD",
+      "price": "80000",
+      "price_per_meter": null
+    },
+    {
+      "currency": "EUR",
+      "price": "70249",
+      "price_per_meter": null
+    },
+    {
+      "currency": "BYN",
+      "price": "232496",
+      "price_per_meter": null
+    },
+    {
+      "currency": "RUB",
+      "price": "6231466",
+      "price_per_meter": null
+    }
+  ],
+  "category": "1010",
+  "company_ad": false,
+  "currency": "USD",
+  "feedback_info": null,
+  "images": [
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/4493708e-8923-427e-a5ff-2a63260d19f2.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/601eb3e2-ffc9-4e6d-b445-718b006132fe.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/776cced8-25b9-44b1-bc97-57b34f69bb0b.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/4ab34dd1-bb04-4f2b-866a-3055cd3f0696.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/343e3749-f823-4076-9539-efb53a795520.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/ff91fe7c-203d-4915-890e-1252807a5119.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/3066fba3-2bf0-41a9-ae56-124079ed04e6.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/d66487a2-0176-4b89-95cc-d474df1d8bcd.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/6135d797-0e59-429d-8632-7d86a4c0f563.jpg",
+      "yams_storage": false
+    },
+    {
+      "id": "0000",
+      "media_storage": "rms",
+      "path": "adim1/a92cdb25-7190-4195-94b0-422d26fb6bc8.jpg",
+      "yams_storage": false
+    }
+  ],
+  "is_mine": false,
+  "list_id": 1074526069,
+  "list_time": "2026-07-01T21:40:49Z",
+  "message_id": "adid1074526069",
+  "paid_services": {
+    "halva": false,
+    "highlight": false,
+    "polepos": false,
+    "ribbons": null
+  },
+  "phone_hidden": false,
+  "price_byn": "232496",
+  "price_usd": "80000",
+  "remuneration_type": "1",
+  "show_parameters": {
+    "show_call": true,
+    "show_chat": false,
+    "show_import_link": false,
+    "show_web_shop_link": false
+  },
+  "subject": "Аренда квартиры",
+  "type": "let"
+}

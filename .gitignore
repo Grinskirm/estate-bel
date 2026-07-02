@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+*.pkl
+*.html
+.DS_Store
+data/raw/*.csv
+data/processed/*.csv
+!data/processed/timeseries_data.csv
+!data/processed/rentals_clean.csv
+!data/processed/rentals_featured.csv
+archive/
+notebooks/*.ipynb
