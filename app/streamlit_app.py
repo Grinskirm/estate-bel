@@ -45,7 +45,19 @@ def load_model():
     model_path = get_models_path('rental_price_model.pkl')
     info_path = get_models_path('model_info.json')
     if not os.path.exists(model_path):
-        return None, None
+        alt_paths = [
+            'models/rental_price_model.pkl',
+            os.path.join(os.getcwd(), 'models', 'rental_price_model.pkl'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models', 'rental_price_model.pkl'),
+        ]
+        for p in alt_paths:
+            p = os.path.normpath(p)
+            if os.path.exists(p):
+                model_path = p
+                info_path = os.path.join(os.path.dirname(p), 'model_info.json')
+                break
+        else:
+            return None, None
     try:
         pipeline = joblib.load(model_path)
         with open(info_path, 'r') as f:
@@ -64,6 +76,18 @@ except Exception as e:
 
 df_ts = load_timeseries()
 pipeline, model_info = load_model()
+
+with st.sidebar.expander("🔧 Диагностика", expanded=False):
+    st.write(f"**cwd:** `{os.getcwd()}`")
+    st.write(f"**__file__:** `{os.path.abspath(__file__)}`")
+    model_path = get_models_path('rental_price_model.pkl')
+    st.write(f"**model path:** `{model_path}`")
+    st.write(f"**exists:** `{os.path.exists(model_path)}`")
+    st.write(f"**models/:** `{os.path.exists('models/rental_price_model.pkl')}`")
+    try:
+        st.write(f"**models dir:** {os.listdir('models')}")
+    except:
+        st.write("**models dir:** N/A")
 
 # ── Вспомогательные функции ──
 
