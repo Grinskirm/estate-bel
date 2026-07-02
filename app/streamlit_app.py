@@ -77,18 +77,6 @@ except Exception as e:
 df_ts = load_timeseries()
 pipeline, model_info = load_model()
 
-with st.sidebar.expander("🔧 Диагностика", expanded=False):
-    st.write(f"**cwd:** `{os.getcwd()}`")
-    st.write(f"**__file__:** `{os.path.abspath(__file__)}`")
-    model_path = get_models_path('rental_price_model.pkl')
-    st.write(f"**model path:** `{model_path}`")
-    st.write(f"**exists:** `{os.path.exists(model_path)}`")
-    st.write(f"**models/:** `{os.path.exists('models/rental_price_model.pkl')}`")
-    try:
-        st.write(f"**models dir:** {os.listdir('models')}")
-    except:
-        st.write("**models dir:** N/A")
-
 # ── Вспомогательные функции ──
 
 ROOM_LABELS = {1: '1 комната', 2: '2 комнаты', 3: '3 комнаты', 4: '4 комнаты', 5: '5+ комнат'}
