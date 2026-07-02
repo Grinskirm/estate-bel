@@ -136,6 +136,14 @@ def load_timeseries(source=None, rooms=None):
     conn.close()
     if not df.empty and 'snapshot_date' in df.columns:
         df['snapshot_date'] = pd.to_datetime(df['snapshot_date'])
+    # Normalise column names to match CSV format
+    rename_map = {
+        'avg_price': 'price_usd',
+        'avg_area': 'area_total',
+        'avg_price_per_m2': 'price_per_m2',
+        'pct_agency': 'company_ad_pct',
+    }
+    df = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
     return df
 
 

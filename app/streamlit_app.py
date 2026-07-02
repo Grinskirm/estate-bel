@@ -104,14 +104,6 @@ pipeline, model_info = load_model()
 
 ROOM_LABELS = {1: '1 комната', 2: '2 комнаты', 3: '3 комнаты', 4: '4 комнаты', 5: '5+ комнат'}
 SOURCE_LABELS = {'kufar': 'Kufar.by', 'realt': 'Realt.by'}
-CONDITION_LABELS = {
-    'good': 'Хорошее', 'normal': 'Нормальное', 'bad': 'Плохое',
-    'renovated': 'Евроремонт', 'cosmetic': 'Косметический', 'euro': 'Евроремонт',
-}
-
-
-def fmt_rooms(r):
-    return ROOM_LABELS.get(int(r), f'{int(r)} комн.')
 
 
 def make_pdf(df_data, df_filtered_data, filters_text):
@@ -139,7 +131,7 @@ rooms_filter = st.sidebar.multiselect(
 
 max_price_in_data = int(df['price_usd'].max()) if 'price_usd' in df.columns else 20000
 price_min, price_max = st.sidebar.slider(
-    "Цена (USD)",
+    "Цена (USD/мес)",
     min_value=0, max_value=max_price_in_data,
     value=(100, min(2000, max_price_in_data)),
     step=50,
@@ -178,10 +170,10 @@ with col4:
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📊 Распределение цен",
     "🏙️ По комнатам",
-    "🏢 Kufar vs Realt",
+    "🏢 Kufar и Realt",
     "📈 Динамика цен",
     "🌡️ Дополнительно",
-    "🗺️ На карте",
+    "🗺️ Тепловая карта",
     "🤖 Калькулятор цены",
 ])
 
@@ -217,7 +209,7 @@ with tab1:
         df_filtered.sample(min(1000, len(df_filtered))),
         x='area_total', y='price_usd',
         color='rooms',
-        title="Цена vs Площадь",
+        title="Цена и площадь",
         color_discrete_sequence=px.colors.qualitative.Bold,
         labels={'area_total': 'Площадь (м²)', 'price_usd': 'Цена (USD/мес)', 'rooms': 'Комнат'},
     )
@@ -292,7 +284,7 @@ with tab3:
     with col2:
         fig = px.box(
             df_filtered, x='source', y='price_usd',
-            title="Цены: Kufar vs Realt",
+            title="Цены: Kufar и Realt",
             color='source',
             color_discrete_sequence=['#e94560', '#3498db'],
             labels={'source': 'Источник', 'price_usd': 'Цена (USD/мес)'},
@@ -357,7 +349,7 @@ with tab4:
     st.subheader("📈 Динамика цен во времени")
 
     if df_ts is None or df_ts.empty:
-        st.warning("Нет данных временных рядов. Запустите `python src/build_timeseries.py` для сборки.")
+        st.warning("Нет данных временных рядов. Данные появятся после первого сбора.")
     else:
         ts_sources = st.multiselect(
             "Источник (временные ряды)",
@@ -447,7 +439,7 @@ with tab4:
                 fig = px.line(
                     avg_by_source,
                     x='snapshot_date', y='price_usd', color='source',
-                    title="Средняя цена: Kufar vs Realt",
+                    title="Средняя цена: Kufar и Realt",
                     markers=True,
                     color_discrete_sequence=['#e94560', '#3498db'],
                     labels={'snapshot_date': 'Дата', 'price_usd': 'Средняя цена (USD)', 'source': 'Источник'},
@@ -573,7 +565,8 @@ with tab6:
 # ── TAB 7: КАЛЬКУЛЯТОР ЦЕНЫ ──
 with tab7:
     st.subheader("🤖 Калькулятор справедливой цены")
-    st.caption("Модель машинного обучения (XGBoost + Random Forest) предсказывает цену на основе параметров квартиры.")
+    model_display = model_info.get('best_model', 'XGBoost') if model_info else 'XGBoost'
+    st.caption(f"Модель машинного обучения ({model_display}) предсказывает цену на основе параметров квартиры.")
 
     if pipeline is None or model_info is None:
         st.error("Модель не найдена. Сначала обучите модель: `python src/train_final.py`")
@@ -773,5 +766,5 @@ if st.sidebar.button("🔄 Очистить кэш"):
 
 st.divider()
 st.caption(
-    "📊 Проект: Анализ рынка аренды Минска • Данные: Kufar.by, Realt.by • Модель: Stacking Ensemble (XGBoost + Random Forest)")
+    f"📊 Проект: Анализ рынка аренды Минска • Данные: Kufar.by, Realt.by • Модель: {model_info.get('model_type', model_info.get('best_model', 'StackingEnsemble')) if model_info else 'StackingEnsemble'}")
 st.caption("🔗 [GitHub](https://github.com/Grinskirm) • Сделано с ❤️")
