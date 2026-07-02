@@ -1,0 +1,128 @@
+/* ── SaaS-стиль дашборда ── */
+
+/* Сайдбар */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1e1e2e 0%, #2d2d44 100%);
+}
+section[data-testid="stSidebar"] * {
+    color: #e0e0e0 !important;
+}
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stMultiSelect label,
+section[data-testid="stSidebar"] .stSlider label {
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    color: #b0b0c0 !important;
+}
+section[data-testid="stSidebar"] hr {
+    border-color: #3d3d5c;
+}
+
+/* Заголовок сайдбара */
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* KPI-карточки */
+div[data-testid="column"] > div[data-testid="stMetric"] {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f2f6 100%);
+    border: 1px solid #e8e8ef;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+div[data-testid="column"] > div[data-testid="stMetric"]:hover {
+    box-shadow: 0 4px 16px rgba(233,69,96,0.12);
+    border-color: #e94560;
+    transition: all 0.2s ease;
+}
+div[data-testid="column"] > div[data-testid="stMetric"] label {
+    font-size: 0.8rem !important;
+    color: #6c6c80 !important;
+}
+div[data-testid="column"] > div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+    font-size: 1.6rem !important;
+    font-weight: 700 !important;
+    color: #1a1a2e !important;
+}
+
+/* Вкладки */
+button[data-baseweb="tab"] {
+    font-size: 0.85rem !important;
+    font-weight: 500;
+    padding: 8px 20px !important;
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+    border-bottom: 3px solid #e94560 !important;
+    color: #e94560 !important;
+    font-weight: 600;
+}
+
+/* Основные блоки */
+.stApp {
+    background: #f8f9fa;
+}
+.stApp > header {
+    background: transparent !important;
+}
+
+/* Экспандер */
+.streamlit-expanderHeader {
+    font-size: 0.85rem !important;
+    color: #6c6c80 !important;
+}
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    border: 1px solid #e8e8ef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Кнопки */
+.stButton > button {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #e94560 0%, #c73650 100%);
+    border: none;
+    color: white;
+}
+.stButton > button[kind="primary"]:hover {
+    box-shadow: 0 4px 14px rgba(233,69,96,0.35);
+    transform: translateY(-1px);
+}
+
+/* Выпадающий список */
+.stSelectbox > div > div {
+    border-radius: 8px;
+    border-color: #e0e0e8;
+}
+
+/* Числовой ввод */
+.stNumberInput > div > div > input {
+    border-radius: 8px;
+    border-color: #e0e0e8;
+}
+
+/* Чекбокс */
+.stCheckbox label {
+    font-size: 0.85rem !important;
+}
+
+/* Капшн / подвал */
+footer {
+    font-size: 0.75rem !important;
+    color: #a0a0b0 !important;
+}
+
+/* Алерты */
+.stAlert {
+    border-radius: 10px;
+    border-left: 4px solid;
+}

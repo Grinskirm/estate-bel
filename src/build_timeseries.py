@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
 import numpy as np
+from src.database import init_db, save_listings, rebuild_timeseries as rebuild_db_ts
 
 KUFAR_COLS = {
     'rooms': 'rooms',
@@ -132,6 +133,29 @@ def build_timeseries():
     print(f'\nSaved {len(result)} rows to {out_path}')
     print(f'Date range: {result["snapshot_date"].min()} to {result["snapshot_date"].max()}')
     print(f'Sources: {result["source"].value_counts().to_dict()}')
+
+    # SQLite
+    init_db()
+    for path in files:
+        name = os.path.basename(path)
+        date = extract_date_from_filename(name)
+        if not date:
+            continue
+        if name.startswith('kufar'):
+            df_raw = read_kufar(path, date)
+            df_save = df_raw.drop(columns=[c for c in ['snapshot_date', 'source'] if c in df_raw.columns], errors='ignore')
+            df_save['ad_id'] = df_raw.get('ad_id')
+            save_listings(df_save, 'kufar', date)
+            print(f'  SQLite: saved {len(df_save)} kufar rows for {date}')
+        elif name.startswith('realt'):
+            df_raw = read_realt(path, date)
+            df_save = df_raw.drop(columns=[c for c in ['snapshot_date', 'source'] if c in df_raw.columns], errors='ignore')
+            df_save['ad_id'] = df_raw.get('ad_id')
+            save_listings(df_save, 'realt', date)
+            print(f'  SQLite: saved {len(df_save)} realt rows for {date}')
+
+    rebuild_db_ts()
+    print('  SQLite: timeseries rebuilt')
 
 
 if __name__ == '__main__':

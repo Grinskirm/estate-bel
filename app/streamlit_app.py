@@ -8,9 +8,11 @@ import joblib
 import json
 import traceback
 import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
 
 from src.config import STATION_COORDS, CENTER_LAT, CENTER_LON, haversine, get_data_path, get_models_path
+from src.database import init_db, load_listings, load_timeseries as load_ts_db, has_data as db_has_data
 
 st.set_page_config(
     page_title="Аренда Минска — Дашборд",
@@ -18,12 +20,26 @@ st.set_page_config(
     layout="wide",
 )
 
+# ── CSS ──
+css_path = os.path.join(os.path.dirname(__file__), 'style.css')
+if os.path.exists(css_path):
+    with open(css_path, 'r') as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
 st.title("🏠 Рынок аренды квартир в Минске")
 st.caption("Данные собраны с Kufar.by и Realt.by")
 
 
 @st.cache_data(ttl=3600)
 def load_data():
+    try:
+        init_db()
+        if db_has_data():
+            df = load_listings()
+            if not df.empty:
+                return df
+    except Exception:
+        pass
     csv_path = get_data_path('processed', 'rentals_clean.csv')
     if not os.path.exists(csv_path):
         st.error(f"Файл данных не найден: {csv_path}")
@@ -33,6 +49,13 @@ def load_data():
 
 @st.cache_data(ttl=3600)
 def load_timeseries():
+    try:
+        init_db()
+        df = load_ts_db()
+        if not df.empty:
+            return df
+    except Exception:
+        pass
     csv_path = get_data_path('processed', 'timeseries_data.csv')
     if not os.path.exists(csv_path):
         return None
@@ -81,10 +104,19 @@ pipeline, model_info = load_model()
 
 ROOM_LABELS = {1: '1 комната', 2: '2 комнаты', 3: '3 комнаты', 4: '4 комнаты', 5: '5+ комнат'}
 SOURCE_LABELS = {'kufar': 'Kufar.by', 'realt': 'Realt.by'}
+CONDITION_LABELS = {
+    'good': 'Хорошее', 'normal': 'Нормальное', 'bad': 'Плохое',
+    'renovated': 'Евроремонт', 'cosmetic': 'Косметический', 'euro': 'Евроремонт',
+}
 
 
 def fmt_rooms(r):
     return ROOM_LABELS.get(int(r), f'{int(r)} комн.')
+
+
+def make_pdf(df_data, df_filtered_data, filters_text):
+    from src.pdf_report import generate_pdf
+    return generate_pdf(df_data, df_filtered_data, filters_text)
 
 
 # ── САЙДБАР — ФИЛЬТРЫ ──
@@ -119,7 +151,6 @@ df_filtered = df[
     (df['price_usd'].between(price_min, price_max))
 ].copy()
 
-# Для отображения — комнаты как int
 if 'rooms' in df_filtered.columns:
     df_filtered['rooms'] = df_filtered['rooms'].astype(int)
 
@@ -197,27 +228,50 @@ with tab1:
 with tab2:
     st.subheader("Статистика по количеству комнат")
 
-    stats = df_filtered.groupby('rooms').agg(
-        Количество=('price_usd', 'count'),
-        Средняя_цена=('price_usd', 'mean'),
-        Медианная_цена=('price_usd', 'median'),
-        Мин_цена=('price_usd', 'min'),
-        Макс_цена=('price_usd', 'max'),
-        Средняя_площадь=('area_total', 'mean'),
-    ).round(0).rename_axis('Комнат')
+    col1, col2 = st.columns(2)
 
-    st.dataframe(stats, use_container_width=True)
+    with col1:
+        room_stats = df_filtered.groupby('rooms').agg(
+            count=('price_usd', 'count'),
+            mean_price=('price_usd', 'mean'),
+            median_price=('price_usd', 'median'),
+        ).reset_index()
+        room_stats['rooms_label'] = room_stats['rooms'].map(ROOM_LABELS)
 
-    fig = px.histogram(
-        df_filtered, x='price_usd', color='rooms',
-        title="Распределение цен по комнатам",
-        barmode='overlay', nbins=40,
-        color_discrete_sequence=px.colors.qualitative.Bold,
-        labels={'price_usd': 'Цена (USD/мес)', 'rooms': 'Комнат'},
-    )
-    fig.update_yaxes(title_text='Количество')
-    fig.update_layout(height=400)
-    st.plotly_chart(fig, use_container_width=True)
+        fig = px.bar(
+            room_stats,
+            x='rooms_label', y='mean_price',
+            title="Средняя цена по комнатам",
+            color='mean_price',
+            color_continuous_scale='Viridis',
+            text_auto='.0f',
+            labels={'rooms_label': '', 'mean_price': 'Средняя цена (USD)'},
+        )
+        fig.update_layout(height=400, showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        fig = px.histogram(
+            df_filtered, x='price_usd', color='rooms',
+            title="Распределение цен по комнатам",
+            barmode='overlay', nbins=40,
+            color_discrete_sequence=px.colors.qualitative.Bold,
+            labels={'price_usd': 'Цена (USD/мес)', 'rooms': 'Комнат'},
+        )
+        fig.update_yaxes(title_text='Количество')
+        fig.update_layout(height=400)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with st.expander("📋 Таблица статистики по комнатам"):
+        stats = df_filtered.groupby('rooms').agg(
+            Количество=('price_usd', 'count'),
+            Средняя_цена=('price_usd', 'mean'),
+            Медианная_цена=('price_usd', 'median'),
+            Мин_цена=('price_usd', 'min'),
+            Макс_цена=('price_usd', 'max'),
+            Средняя_площадь=('area_total', 'mean'),
+        ).round(0).rename_axis('Комнат')
+        st.dataframe(stats, use_container_width=True)
 
 # ── TAB 3: KUFAR VS REALT ──
 with tab3:
@@ -247,18 +301,56 @@ with tab3:
         st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Детальное сравнение")
-    source_stats = df_filtered.groupby('source').agg(
-        Объявлений=('price_usd', 'count'),
-        Средняя_цена=('price_usd', 'mean'),
-        Медианная_цена=('price_usd', 'median'),
-        Средняя_площадь=('area_total', 'mean'),
-        Агентств=('company_ad', 'sum'),
-    ).round(0).rename_axis('Источник')
-    source_stats['% агентств'] = (
-        source_stats['Агентств'] / source_stats['Объявлений'] * 100).round(1)
-    source_stats.index = source_stats.index.map(lambda x: SOURCE_LABELS.get(x, x))
 
-    st.dataframe(source_stats, use_container_width=True)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        source_stats = df_filtered.groupby('source').agg(
+            count=('price_usd', 'count'),
+            mean_price=('price_usd', 'mean'),
+            mean_area=('area_total', 'mean'),
+            agencies=('company_ad', 'sum'),
+        ).reset_index()
+        source_stats['source'] = source_stats['source'].map(SOURCE_LABELS)
+        source_stats['agency_pct'] = (source_stats['agencies'] / source_stats['count'] * 100).round(1)
+
+        fig = px.bar(
+            source_stats,
+            x='source', y='mean_price',
+            title="Средняя цена по источнику",
+            color='source',
+            color_discrete_sequence=['#e94560', '#3498db'],
+            text_auto='.0f',
+            labels={'source': '', 'mean_price': 'Средняя цена (USD)'},
+        )
+        fig.update_layout(height=400, showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        fig = px.bar(
+            source_stats,
+            x='source', y='agency_pct',
+            title="Доля агентств по источнику (%)",
+            color='source',
+            color_discrete_sequence=['#e94560', '#3498db'],
+            text_auto='.1f',
+            labels={'source': '', 'agency_pct': '% агентств'},
+        )
+        fig.update_layout(height=400, showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with st.expander("📋 Таблица сравнения источников"):
+        src_table = df_filtered.groupby('source').agg(
+            Объявлений=('price_usd', 'count'),
+            Средняя_цена=('price_usd', 'mean'),
+            Медианная_цена=('price_usd', 'median'),
+            Средняя_площадь=('area_total', 'mean'),
+            Агентств=('company_ad', 'sum'),
+        ).round(0).rename_axis('Источник')
+        src_table['% агентств'] = (
+            src_table['Агентств'] / src_table['Объявлений'] * 100).round(1)
+        src_table.index = src_table.index.map(lambda x: SOURCE_LABELS.get(x, x))
+        st.dataframe(src_table, use_container_width=True)
 
 # ── TAB 4: ДИНАМИКА ЦЕН ──
 with tab4:
@@ -393,7 +485,6 @@ with tab5:
         if df_ts5.empty:
             st.info("Нет данных для выбранных фильтров.")
         else:
-            # Средняя цена по станциям метро
             if 'metro_station' in df_ts5.columns:
                 metro_stats = df_ts5[
                     df_ts5['metro_station'].notna() & (df_ts5['metro_station'] != '')
@@ -415,14 +506,10 @@ with tab5:
                     st.plotly_chart(fig, use_container_width=True)
                 else:
                     st.info("Нет данных по станциям метро. Данные появятся после нескольких дней сбора.")
-            else:
-                st.info("Нет данных по станциям метро. Данные появятся после нескольких дней сбора.")
-
-
 
 # ── TAB 6: НА КАРТЕ ──
 with tab6:
-    st.subheader("🗺️ Объявления на карте Минска")
+    st.subheader("🗺️ Тепловая карта цен")
 
     lat_col = 'location_lat' if 'location_lat' in df_filtered.columns else 'lat'
     lon_col = 'location_lon' if 'location_lon' in df_filtered.columns else 'lon'
@@ -434,30 +521,53 @@ with tab6:
     elif len(df_map) < 2:
         st.info("Слишком мало точек для отображения на карте.")
     else:
-        sample_size = min(500, len(df_map))
+        sample_size = min(1000, len(df_map))
         df_map_sample = df_map.sample(sample_size, random_state=42)
 
-        fig = px.scatter_mapbox(
-            df_map_sample,
-            lat=lat_col,
-            lon=lon_col,
-            color='price_usd',
-            size='area_total',
-            hover_name='source',
-            hover_data={
-                'price_usd': ':$,.0f',
-                'rooms': True,
-                'area_total': ':.1f м²',
-                lat_col: False,
-                lon_col: False,
-            },
-            color_continuous_scale='Viridis',
-            zoom=10,
-            height=600,
-            title=f"Показано {sample_size} объявлений",
+        fig = go.Figure()
+
+        fig.add_trace(go.Densitymapbox(
+            lat=df_map_sample[lat_col],
+            lon=df_map_sample[lon_col],
+            z=df_map_sample['price_usd'],
+            radius=15,
+            colorscale='Viridis',
+            zmin=df_map_sample['price_usd'].quantile(0.05),
+            zmax=df_map_sample['price_usd'].quantile(0.95),
+            colorbar=dict(title="Цена (USD)", thickness=15),
+            hovertemplate='Цена: $%{z:.0f}<br>Лат: %{lat:.4f}<br>Лон: %{lon:.4f}<extra></extra>',
+        ))
+
+        metro_lats = [v[0] for v in STATION_COORDS.values()]
+        metro_lons = [v[1] for v in STATION_COORDS.values()]
+        metro_names = list(STATION_COORDS.keys())
+
+        fig.add_trace(go.Scattermapbox(
+            lat=metro_lats,
+            lon=metro_lons,
+            mode='markers+text',
+            marker=dict(size=8, color='#e94560', symbol='circle'),
+            text=metro_names,
+            textposition='top center',
+            textfont=dict(size=9, color='#1a1a2e'),
+            name='Станции метро',
+            hovertemplate='%{text}<extra></extra>',
+        ))
+
+        center_lat = df_map_sample[lat_col].mean()
+        center_lon = df_map_sample[lon_col].mean()
+
+        fig.update_layout(
+            mapbox=dict(
+                style='open-street-map',
+                center=dict(lat=center_lat, lon=center_lon),
+                zoom=11,
+            ),
+            height=650,
+            margin=dict(l=0, r=0, t=30, b=0),
+            legend=dict(yanchor='top', y=0.99, xanchor='left', x=0.01),
         )
-        fig.update_layout(mapbox_style='open-street-map')
-        fig.update_layout(margin=dict(l=0, r=0, t=30, b=0))
+
         st.plotly_chart(fig, use_container_width=True)
 
 # ── TAB 7: КАЛЬКУЛЯТОР ЦЕНЫ ──
@@ -635,6 +745,25 @@ st.sidebar.download_button(
     file_name=f'rentals_minsk_{datetime.now().strftime("%Y-%m-%d")}.csv',
     mime='text/csv',
 )
+
+filters_text = (
+    f"Источники: {', '.join(SOURCE_LABELS.get(s, s) for s in sources)} | "
+    f"Комнат: {', '.join(str(r) for r in rooms_filter)} | "
+    f"Цена: ${price_min}-${price_max}"
+)
+
+if st.sidebar.button("📄 Экспорт в PDF", type="primary"):
+    with st.spinner("Генерация PDF..."):
+        try:
+            pdf_bytes = make_pdf(df, df_filtered, filters_text)
+            st.sidebar.download_button(
+                label="📄 Скачать PDF",
+                data=pdf_bytes,
+                file_name=f'report_minsk_{datetime.now().strftime("%Y-%m-%d")}.pdf',
+                mime='application/pdf',
+            )
+        except Exception as e:
+            st.sidebar.error(f"Ошибка PDF: {e}")
 
 cache_placeholder = st.sidebar.empty()
 if st.sidebar.button("🔄 Очистить кэш"):

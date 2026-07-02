@@ -1,0 +1,50 @@
+name: Auto retrain model
+
+on:
+  schedule:
+    - cron: '0 8 */14 * *'
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Check for new data
+        id: check
+        run: |
+          LAST=$(python -c "
+import os, glob, re
+files = sorted(glob.glob('data/raw/*.csv'))
+if not files:
+    print('none')
+else:
+    print(os.path.basename(files[-1]))
+          ")
+          echo "last_file=$LAST" >> $GITHUB_OUTPUT
+          echo "Last raw file: $LAST"
+
+      - name: Build timeseries + sync SQLite
+        run: python src/build_timeseries.py
+
+      - name: Train model
+        run: python src/train_final.py
+
+      - name: Commit and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🔄 auto retrain model"
+          commit_user_name: "retrain-bot"
+          commit_user_email: "retrain-bot@users.noreply.github.com"
+          file_pattern: "models/*.pkl models/*.json data/processed/*.csv"
