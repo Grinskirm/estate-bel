@@ -77,4 +77,4 @@ Dashboard reads from SQLite first, falls back to CSV.
 
 ## .gitignore notes
 
-`.pkl` files are gitignored except `models/rental_price_model.pkl`. SQLite DB (`data/estate.db`) is gitignored (auto-created).
+`.pkl` files are gitignored except `models/rental_price_model.pkl`.
