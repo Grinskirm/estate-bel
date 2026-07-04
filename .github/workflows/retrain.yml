@@ -47,4 +47,4 @@ else:
           commit_message: "🔄 auto retrain model"
           commit_user_name: "retrain-bot"
           commit_user_email: "retrain-bot@users.noreply.github.com"
-          file_pattern: "models/*.pkl models/*.json data/processed/*.csv"
+          file_pattern: "models/*.pkl models/*.json data/processed/*.csv data/estate.db"
