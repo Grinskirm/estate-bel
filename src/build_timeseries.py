@@ -84,6 +84,14 @@ def read_realt(path, snapshot_date):
     return df
 
 
+def load_existing_timeseries(path):
+    if not os.path.exists(path):
+        return None
+    df = pd.read_csv(path, parse_dates=['snapshot_date'])
+    print(f'  Loaded existing timeseries: {len(df)} rows')
+    return df
+
+
 def build_timeseries():
     files = sorted(glob.glob('data/raw/*.csv'))
     if not files:
@@ -129,12 +137,23 @@ def build_timeseries():
     result['snapshot_date'] = pd.to_datetime(result['snapshot_date'])
 
     out_path = 'data/processed/timeseries_data.csv'
+
+    # Merge with existing timeseries to accumulate history across CI runs
+    existing = load_existing_timeseries(out_path)
+    if existing is not None:
+        # Keep only rows from existing that are NOT in the new data
+        existing_dates = set(result['snapshot_date'].dt.strftime('%Y-%m-%d').unique())
+        existing = existing[~existing['snapshot_date'].dt.strftime('%Y-%m-%d').isin(existing_dates)]
+        result = pd.concat([existing, result], ignore_index=True)
+        result = result.sort_values(['snapshot_date', 'source', 'rooms']).reset_index(drop=True)
+        print(f'  Merged with existing: {len(result)} total rows')
+
     result.to_csv(out_path, index=False)
     print(f'\nSaved {len(result)} rows to {out_path}')
     print(f'Date range: {result["snapshot_date"].min()} to {result["snapshot_date"].max()}')
     print(f'Sources: {result["source"].value_counts().to_dict()}')
 
-    # SQLite
+    # SQLite — re-insert only new dates to preserve existing listings
     init_db()
     for path in files:
         name = os.path.basename(path)
