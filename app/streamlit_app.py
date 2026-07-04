@@ -20,11 +20,23 @@ st.set_page_config(
     layout="wide",
 )
 
-# ── CSS ──
-css_path = os.path.join(os.path.dirname(__file__), 'style.css')
-if os.path.exists(css_path):
-    with open(css_path, 'r') as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+DARK_CSS = """
+.stApp { background: #0e0e1a !important; }
+.stApp > header { background: transparent !important; }
+[data-testid="stMetric"] {
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%) !important;
+    border-color: #3d3d5c !important;
+}
+[data-testid="stMetric"] label { color: #b0b0c0 !important; }
+[data-testid="stMetric"] [data-testid="stMetricValue"] { color: #ffffff !important; }
+[data-testid="stDataFrame"] { border-color: #3d3d5c !important; }
+.streamlit-expanderHeader { color: #a0a0b0 !important; }
+.stSelectbox > div > div { border-color: #3d3d5c !important; background: #1e1e2e !important; }
+.stNumberInput > div > div > input { border-color: #3d3d5c !important; background: #1e1e2e !important; color: #e0e0e0 !important; }
+.stMultiSelect > div { background: #1e1e2e !important; }
+.stAlert { background: #1e1e2e !important; color: #e0e0e0 !important; }
+footer { color: #606080 !important; }
+"""
 
 st.title("🏠 Рынок аренды квартир в Минске")
 st.caption("Данные собраны с Kufar.by и Realt.by")
@@ -102,7 +114,7 @@ pipeline, model_info = load_model()
 
 # ── Вспомогательные функции ──
 
-ROOM_LABELS = {1: '1 комната', 2: '2 комнаты', 3: '3 комнаты', 4: '4 комнаты', 5: '5+ комнат'}
+ROOM_LABELS = {1: '1 комната', 2: '2 комнаты', 3: '3 комнаты', 4: '4 комнаты', 5: '5 комнат'}
 SOURCE_LABELS = {'kufar': 'Kufar.by', 'realt': 'Realt.by'}
 
 
@@ -111,7 +123,17 @@ def make_pdf(df_data, df_filtered_data, filters_text):
     return generate_pdf(df_data, df_filtered_data, filters_text)
 
 
-# ── САЙДБАР — ФИЛЬТРЫ ──
+# ── САЙДБАР — ТЕМА / CSS ──
+dark_theme = st.sidebar.toggle("🌙 Тёмная тема", value=True)
+
+css_path = os.path.join(os.path.dirname(__file__), 'style.css')
+if os.path.exists(css_path):
+    with open(css_path, 'r') as f:
+        base_css = f.read()
+    dark_override = DARK_CSS if dark_theme else ''
+    st.markdown(f'<style>{base_css}{dark_override}</style>', unsafe_allow_html=True)
+
+st.sidebar.divider()
 st.sidebar.header("🔍 Фильтры")
 
 sources = st.sidebar.multiselect(
@@ -513,19 +535,16 @@ with tab6:
     elif len(df_map) < 2:
         st.info("Слишком мало точек для отображения на карте.")
     else:
-        sample_size = min(1000, len(df_map))
-        df_map_sample = df_map.sample(sample_size, random_state=42)
-
         fig = go.Figure()
 
         fig.add_trace(go.Densitymapbox(
-            lat=df_map_sample[lat_col],
-            lon=df_map_sample[lon_col],
-            z=df_map_sample['price_usd'],
+            lat=df_map[lat_col],
+            lon=df_map[lon_col],
+            z=df_map['price_usd'],
             radius=15,
             colorscale='Viridis',
-            zmin=df_map_sample['price_usd'].quantile(0.05),
-            zmax=df_map_sample['price_usd'].quantile(0.95),
+            zmin=df_map['price_usd'].quantile(0.05),
+            zmax=df_map['price_usd'].quantile(0.95),
             colorbar=dict(title="Цена (USD)", thickness=15),
             hovertemplate='Цена: $%{z:.0f}<br>Лат: %{lat:.4f}<br>Лон: %{lon:.4f}<extra></extra>',
         ))
@@ -546,8 +565,8 @@ with tab6:
             hovertemplate='%{text}<extra></extra>',
         ))
 
-        center_lat = df_map_sample[lat_col].mean()
-        center_lon = df_map_sample[lon_col].mean()
+        center_lat = df_map[lat_col].mean()
+        center_lon = df_map[lon_col].mean()
 
         fig.update_layout(
             mapbox=dict(
@@ -740,9 +759,9 @@ st.sidebar.download_button(
 )
 
 filters_text = (
-    f"Источники: {', '.join(SOURCE_LABELS.get(s, s) for s in sources)} | "
-    f"Комнат: {', '.join(str(r) for r in rooms_filter)} | "
-    f"Цена: ${price_min}-${price_max}"
+    f"Sources: {', '.join(SOURCE_LABELS.get(s, s) for s in sources)} | "
+    f"Rooms: {', '.join(str(r) for r in rooms_filter)} | "
+    f"Price: ${price_min}-${price_max}"
 )
 
 if st.sidebar.button("📄 Экспорт в PDF", type="primary"):

@@ -1,4 +1,4 @@
-import sys, os, io
+import sys, os, io, re
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fpdf import FPDF
@@ -7,32 +7,41 @@ import numpy as np
 from datetime import datetime
 
 SOURCE_LABELS = {'kufar': 'Kufar.by', 'realt': 'Realt.by'}
-ROOM_LABELS = {1: '1 комната', 2: '2 комнаты', 3: '3 комнаты', 4: '4 комнаты', 5: '5+ комнат'}
+ROOM_LABELS = {1: '1 комната', 2: '2 комнаты', 3: '3 комнаты', 4: '4 комнаты', 5: '5 комнат'}
+
+
+def sanitize(text):
+    t = str(text)
+    t = t.replace('\u2014', '-').replace('\u2013', '-')
+    t = t.replace('\u2022', '*').replace('\u2026', '...')
+    t = t.replace('\u00AB', '<<').replace('\u00BB', '>>')
+    t = re.sub(r'[^\x00-\xFF]', '?', t)
+    return t
 
 
 class Report(FPDF):
     def header(self):
         self.set_font('Helvetica', 'B', 10)
         self.set_text_color(233, 69, 96)
-        self.cell(0, 8, 'Rynok arendy Minska — Otchet', align='L')
+        self.cell(0, 8, sanitize('Rynok arendy Minska - Otchet'), align='L')
         self.ln(12)
 
     def footer(self):
         self.set_y(-15)
         self.set_font('Helvetica', 'I', 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f'Stranitsa {self.page_no()}/{{nb}}', align='C')
+        self.cell(0, 10, sanitize(f'Stranitsa {self.page_no()}/{{nb}}'), align='C')
 
     def section_title(self, title):
         self.set_font('Helvetica', 'B', 13)
         self.set_text_color(26, 26, 46)
-        self.cell(0, 10, title)
+        self.cell(0, 10, sanitize(title))
         self.ln(8)
 
     def kpi_block(self, kpis):
         self.set_font('Helvetica', '', 10)
         self.set_text_color(60, 60, 80)
-        line = '  |  '.join(f'{k}: {v}' for k, v in kpis)
+        line = '  |  '.join(f'{sanitize(k)}: {sanitize(v)}' for k, v in kpis)
         self.multi_cell(0, 7, line)
         self.ln(4)
 
@@ -45,7 +54,7 @@ class Report(FPDF):
             col_widths = [self.w / (len(headers) + 1)] * len(headers)
 
         for i, h in enumerate(headers):
-            self.cell(col_widths[i], 7, h, border=1, fill=True, align='C')
+            self.cell(col_widths[i], 7, sanitize(h), border=1, fill=True, align='C')
         self.ln()
 
         self.set_font('Helvetica', '', 9)
@@ -61,7 +70,7 @@ class Report(FPDF):
             for i, cell in enumerate(row):
                 align = 'C' if isinstance(cell, (int, float)) else 'L'
                 val = f'{cell:,.0f}' if isinstance(cell, float) and abs(cell) < 1e6 else str(cell)
-                self.cell(col_widths[i], 6, val, border=1, fill=True, align=align)
+                self.cell(col_widths[i], 6, sanitize(val), border=1, fill=True, align=align)
             self.ln()
 
 
@@ -73,15 +82,15 @@ def generate_pdf(df_full, df_filtered, filters_text):
     # Title
     pdf.set_font('Helvetica', 'B', 18)
     pdf.set_text_color(26, 26, 46)
-    pdf.cell(0, 12, 'Otchet rynka arendy Minska')
+    pdf.cell(0, 12, sanitize('Otchet rynka arendy Minska'))
     pdf.ln()
 
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(150, 150, 150)
-    pdf.cell(0, 6, f'Generirovan: {datetime.now().strftime("%d.%m.%Y %H:%M")}')
+    pdf.cell(0, 6, sanitize(f'Generirovan: {datetime.now().strftime("%d.%m.%Y %H:%M")}'))
     pdf.ln()
     pdf.set_font('Helvetica', 'I', 9)
-    pdf.multi_cell(0, 6, f'Filtry: {filters_text}')
+    pdf.multi_cell(0, 6, sanitize(f'Filtry: {filters_text}'))
     pdf.ln(6)
 
     # KPI
@@ -155,7 +164,7 @@ def generate_pdf(df_full, df_filtered, filters_text):
         fig1 = px.bar(
             room_stats.reset_index(),
             x='rooms', y='mean_price',
-            title='Srednyaya cena po komnatam',
+            title=sanitize('Srednyaya cena po komnatam'),
         )
         fig1.update_layout(showlegend=False, margin=dict(l=20, r=20, t=40, b=20))
         img_bytes = pio.to_image(fig1, format='png', width=600, height=350)
@@ -172,7 +181,7 @@ def generate_pdf(df_full, df_filtered, filters_text):
             fig2 = px.bar(
                 src_df,
                 x='source', y='mean_price',
-                title='Srednyaya cena: Kufar vs Realt',
+                title=sanitize('Srednyaya cena: Kufar i Realt'),
                 color='source',
                 color_discrete_sequence=['#e94560', '#3498db'],
             )
