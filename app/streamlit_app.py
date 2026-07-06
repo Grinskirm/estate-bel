@@ -9,6 +9,7 @@ import json
 import traceback
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 from datetime import datetime
 
 from src.config import STATION_COORDS, CENTER_LAT, CENTER_LON, haversine, get_data_path, get_models_path
@@ -31,7 +32,11 @@ LIGHT_CSS = """
 [data-testid="stDataFrame"] { border-color: #e8e8ef !important; }
 .streamlit-expanderHeader { color: #6c6c80 !important; }
 .stSelectbox > div > div { border-color: #e0e0e8 !important; background: #ffffff !important; color: #1a1a2e !important; }
+div[data-baseweb="select"] div[role="listbox"] { background: #ffffff !important; border-color: #e0e0e8 !important; }
+div[data-baseweb="select"] li[role="option"] { background: #ffffff !important; color: #1a1a2e !important; }
+div[data-baseweb="select"] li[role="option"]:hover { background: #f0f2f6 !important; }
 .stNumberInput > div > div > input { border-color: #e0e0e8 !important; background: #ffffff !important; color: #1a1a2e !important; }
+.stNumberInput label { color: #6c6c80 !important; }
 .stMultiSelect > div { background: #ffffff !important; border-color: #e0e0e8 !important; }
 .stAlert { background: #ffffff !important; color: #1a1a2e !important; }
 footer { color: #a0a0b0 !important; }
@@ -39,9 +44,10 @@ footer { color: #a0a0b0 !important; }
 .stApp .stMarkdown p, .stApp .stMarkdown li, .stApp .stMarkdown span { color: #333340; }
 button[data-baseweb="tab"] { color: #6c6c80 !important; }
 button[data-baseweb="tab"][aria-selected="true"] { color: #e94560 !important; }
-.stCheckbox label { color: #333340 !important; }
-.stRadio label { color: #333340 !important; }
+.stCheckbox label, div[data-testid="column"] .stCheckbox label { color: #333340 !important; }
+.stRadio label, div[data-testid="column"] .stRadio label { color: #333340 !important; }
 .stButton > button { background: #ffffff; color: #333340; border-color: #e0e0e8; }
+.stDownloadButton > button { background: #ffffff !important; color: #333340 !important; border-color: #e0e0e8 !important; }
 [data-testid="stDataFrame"] th { background: #f0f2f6 !important; color: #1a1a2e !important; }
 [data-testid="stDataFrame"] td { background: #ffffff !important; color: #333340 !important; }
 .stSlider label { color: #6c6c80 !important; }
@@ -145,6 +151,9 @@ if os.path.exists(css_path):
     light_override = LIGHT_CSS if not dark_theme else ''
     st.markdown(f'<style>{base_css}{light_override}</style>', unsafe_allow_html=True)
 
+# Plotly dark/light template
+pio.templates.default = 'plotly_dark' if dark_theme else 'plotly_white'
+
 st.sidebar.divider()
 st.sidebar.header("🔍 Фильтры")
 
@@ -180,6 +189,13 @@ df_filtered = df[
 if 'rooms' in df_filtered.columns:
     df_filtered['rooms'] = df_filtered['rooms'].astype(int)
 
+# Latest date subset for KPI
+if 'snapshot_date' in df_filtered.columns and not df_filtered.empty:
+    latest_date = df_filtered['snapshot_date'].max()
+    df_latest = df_filtered[df_filtered['snapshot_date'] == latest_date].copy()
+else:
+    df_latest = df_filtered
+
 # ── KPI ──
 col1, col2, col3, col4 = st.columns(4)
 
@@ -188,17 +204,17 @@ if df_filtered.empty:
     st.stop()
 
 with col1:
-    st.metric("📋 Объявлений", f"{len(df_filtered):,}")
+    st.metric("📋 Объявлений", f"{len(df_latest):,}")
 
 with col2:
-    st.metric("💰 Средняя цена", f"${df_filtered['price_usd'].mean():.0f}")
+    st.metric("💰 Средняя цена", f"${df_latest['price_usd'].mean():.0f}")
 
 with col3:
-    st.metric("📊 Медианная цена", f"${df_filtered['price_usd'].median():.0f}")
+    st.metric("📊 Медианная цена", f"${df_latest['price_usd'].median():.0f}")
 
 with col4:
     st.metric("📐 Средняя площадь",
-              f"{df_filtered['area_total'].mean():.0f} м²")
+              f"{df_latest['area_total'].mean():.0f} м²")
 
 # ── ВКЛАДКИ ──
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
@@ -531,24 +547,20 @@ with tab6:
     else:
         fig = go.Figure()
 
-        price_p99 = df_map['price_usd'].quantile(0.99)
+        p01 = df_map['price_usd'].quantile(0.01)
+        p99 = df_map['price_usd'].quantile(0.99)
 
-        fig.add_trace(go.Scattermapbox(
+        fig.add_trace(go.Densitymapbox(
             lat=df_map[lat_col],
             lon=df_map[lon_col],
-            mode='markers',
-            marker=dict(
-                size=5,
-                color=df_map['price_usd'],
-                colorscale='Viridis',
-                cmin=df_map['price_usd'].quantile(0.05),
-                cmax=price_p99,
-                opacity=0.7,
-                colorbar=dict(title="Цена (USD)", thickness=15),
-            ),
-            text=[f"${p:.0f}" for p in df_map['price_usd']],
-            hovertemplate='Цена: %{text}<br>Лат: %{lat:.4f}<br>Лон: %{lon:.4f}<extra></extra>',
-            name='Объявления',
+            z=df_map['price_usd'],
+            radius=12,
+            colorscale='Viridis',
+            zmin=p01,
+            zmax=p99,
+            opacity=0.85,
+            colorbar=dict(title="Цена (USD)", thickness=15),
+            hovertemplate='Цена: $%{z:.0f}<br>Лат: %{lat:.4f}<br>Лон: %{lon:.4f}<extra></extra>',
         ))
 
         metro_lats = [v[0] for v in STATION_COORDS.values()]

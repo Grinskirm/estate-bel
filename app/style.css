@@ -31,8 +31,6 @@ section[data-testid="stSidebar"] h3 {
     color: #ffffff !important;
     font-weight: 600;
 }
-
-/* Sidebar toggle */
 section[data-testid="stSidebar"] .stCheckbox label,
 section[data-testid="stSidebar"] .stToggle label {
     color: #e0e0e0 !important;
@@ -40,14 +38,14 @@ section[data-testid="stSidebar"] .stToggle label {
 
 /* KPI cards */
 div[data-testid="column"] > div[data-testid="stMetric"] {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border: 1px solid #2a2a4a;
+    background: linear-gradient(135deg, #222244 0%, #1a1a3e 100%);
+    border: 2px solid #2a2a5a;
     border-radius: 12px;
     padding: 16px 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 div[data-testid="column"] > div[data-testid="stMetric"]:hover {
-    box-shadow: 0 4px 16px rgba(233, 69, 96, 0.15);
+    box-shadow: 0 4px 20px rgba(233, 69, 96, 0.2);
     border-color: #e94560;
     transition: all 0.2s ease;
 }
@@ -81,14 +79,12 @@ button[data-baseweb="tab"]:hover {
 .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
     color: #ffffff !important;
 }
-.stApp .stSubheader, .stApp .stCaption {
+.stApp .stSubheader, .stApp .stCaption, .stApp .stMarkdown caption {
     color: #a0a0b8 !important;
 }
 .stApp .stMarkdown p, .stApp .stMarkdown li, .stApp .stMarkdown span {
     color: #d0d0e0;
 }
-
-/* Subheaders in tabs */
 .stApp h2, .stApp h3 {
     color: #ffffff !important;
     font-weight: 600;
@@ -149,7 +145,19 @@ button[data-baseweb="tab"]:hover {
     transform: translateY(-1px);
 }
 
-/* Selectbox */
+/* Download buttons */
+.stDownloadButton > button {
+    border-radius: 8px !important;
+    background: #1a1a2e !important;
+    color: #d0d0e0 !important;
+    border: 1px solid #2a2a4a !important;
+}
+.stDownloadButton > button:hover {
+    border-color: #e94560 !important;
+    color: #ffffff !important;
+}
+
+/* Selectbox - main control */
 .stSelectbox > div > div {
     border-radius: 8px;
     border-color: #2a2a4a;
@@ -158,6 +166,34 @@ button[data-baseweb="tab"]:hover {
 }
 .stSelectbox > div > div:hover {
     border-color: #e94560;
+}
+/* Selectbox - dropdown menu */
+div[data-baseweb="select"] div[role="listbox"] {
+    background: #1a1a2e !important;
+    border-color: #2a2a4a !important;
+}
+div[data-baseweb="select"] li[role="option"] {
+    background: #1a1a2e !important;
+    color: #e0e0e0 !important;
+}
+div[data-baseweb="select"] li[role="option"]:hover,
+div[data-baseweb="select"] li[role="option"][aria-selected="true"] {
+    background: #2a2a4a !important;
+    color: #ffffff !important;
+}
+
+/* Multiselect */
+.stMultiSelect > div {
+    background: #1a1a2e !important;
+    border-color: #2a2a4a !important;
+}
+.stMultiSelect > div:hover {
+    border-color: #e94560 !important;
+}
+/* Multiselect dropdown */
+div[data-baseweb="select"] div[role="listbox"] * {
+    background: #1a1a2e !important;
+    color: #e0e0e0 !important;
 }
 
 /* Number input */
@@ -170,23 +206,39 @@ button[data-baseweb="tab"]:hover {
 .stNumberInput > div > div > input:focus {
     border-color: #e94560;
 }
-
-/* Multiselect */
-.stMultiSelect > div {
-    background: #1a1a2e !important;
-    border-color: #2a2a4a !important;
-}
-.stMultiSelect > div:hover {
-    border-color: #e94560 !important;
+.stNumberInput label {
+    color: #a0a0b8 !important;
 }
 
-/* Checkbox / Radio */
+/* Checkbox - both sidebar and main area */
 .stCheckbox label {
     font-size: 0.85rem !important;
     color: #d0d0e0 !important;
 }
+div[data-testid="column"] .stCheckbox label {
+    color: #d0d0e0 !important;
+}
+
+/* Radio */
 .stRadio label {
     color: #d0d0e0 !important;
+}
+div[data-testid="column"] .stRadio label {
+    color: #d0d0e0 !important;
+}
+div[data-testid="column"] .stRadio div[role="radiogroup"] {
+    color: #d0d0e0 !important;
+}
+
+/* Selectbox labels in content columns */
+div[data-testid="column"] .stSelectbox label,
+div[data-testid="column"] .stNumberInput label {
+    color: #a0a0b8 !important;
+}
+div[data-testid="column"] .stSelectbox > div > div {
+    background: #1a1a2e !important;
+    color: #e0e0e0 !important;
+    border-color: #2a2a4a !important;
 }
 
 /* Alert / Info / Warning */
@@ -211,11 +263,6 @@ footer {
 /* Dividers */
 .stDivider {
     border-color: #2a2a4a !important;
-}
-
-/* Download button */
-.stDownloadButton > button {
-    border-radius: 8px;
 }
 
 /* Spinner */
