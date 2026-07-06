@@ -766,18 +766,21 @@ filters_text = (
     f"Price: ${price_min}-${price_max}"
 )
 
-if st.sidebar.button("📄 Экспорт в PDF", type="primary"):
+if st.sidebar.button("📄 Сгенерировать PDF", type="primary"):
     with st.spinner("Генерация PDF..."):
         try:
-            pdf_bytes = make_pdf(df, df_filtered, filters_text)
-            st.sidebar.download_button(
-                label="📄 Скачать PDF",
-                data=pdf_bytes,
-                file_name=f'report_minsk_{datetime.now().strftime("%Y-%m-%d")}.pdf',
-                mime='application/pdf',
-            )
+            st.session_state.pdf_data = make_pdf(df, df_filtered, filters_text)
         except Exception as e:
             st.sidebar.error(f"Ошибка PDF: {e}")
+            st.session_state.pdf_data = None
+
+if st.session_state.get('pdf_data') is not None:
+    st.sidebar.download_button(
+        label="📄 Скачать PDF",
+        data=st.session_state.pdf_data,
+        file_name=f'report_minsk_{datetime.now().strftime("%Y-%m-%d")}.pdf',
+        mime='application/pdf',
+    )
 
 cache_placeholder = st.sidebar.empty()
 if st.sidebar.button("🔄 Очистить кэш"):
