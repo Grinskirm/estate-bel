@@ -20,22 +20,32 @@ st.set_page_config(
     layout="wide",
 )
 
-DARK_CSS = """
-.stApp { background: #0e0e1a !important; }
-.stApp > header { background: transparent !important; }
+LIGHT_CSS = """
+.stApp { background: #f8f9fa !important; }
 [data-testid="stMetric"] {
-    background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%) !important;
-    border-color: #3d3d5c !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f2f6 100%) !important;
+    border-color: #e8e8ef !important;
 }
-[data-testid="stMetric"] label { color: #b0b0c0 !important; }
-[data-testid="stMetric"] [data-testid="stMetricValue"] { color: #ffffff !important; }
-[data-testid="stDataFrame"] { border-color: #3d3d5c !important; }
-.streamlit-expanderHeader { color: #a0a0b0 !important; }
-.stSelectbox > div > div { border-color: #3d3d5c !important; background: #1e1e2e !important; }
-.stNumberInput > div > div > input { border-color: #3d3d5c !important; background: #1e1e2e !important; color: #e0e0e0 !important; }
-.stMultiSelect > div { background: #1e1e2e !important; }
-.stAlert { background: #1e1e2e !important; color: #e0e0e0 !important; }
-footer { color: #606080 !important; }
+[data-testid="stMetric"] label { color: #6c6c80 !important; }
+[data-testid="stMetric"] [data-testid="stMetricValue"] { color: #1a1a2e !important; }
+[data-testid="stDataFrame"] { border-color: #e8e8ef !important; }
+.streamlit-expanderHeader { color: #6c6c80 !important; }
+.stSelectbox > div > div { border-color: #e0e0e8 !important; background: #ffffff !important; color: #1a1a2e !important; }
+.stNumberInput > div > div > input { border-color: #e0e0e8 !important; background: #ffffff !important; color: #1a1a2e !important; }
+.stMultiSelect > div { background: #ffffff !important; border-color: #e0e0e8 !important; }
+.stAlert { background: #ffffff !important; color: #1a1a2e !important; }
+footer { color: #a0a0b0 !important; }
+.stApp h1, .stApp h2, .stApp h3, .stApp h4 { color: #1a1a2e !important; }
+.stApp .stMarkdown p, .stApp .stMarkdown li, .stApp .stMarkdown span { color: #333340; }
+button[data-baseweb="tab"] { color: #6c6c80 !important; }
+button[data-baseweb="tab"][aria-selected="true"] { color: #e94560 !important; }
+.stCheckbox label { color: #333340 !important; }
+.stRadio label { color: #333340 !important; }
+.stButton > button { background: #ffffff; color: #333340; border-color: #e0e0e8; }
+[data-testid="stDataFrame"] th { background: #f0f2f6 !important; color: #1a1a2e !important; }
+[data-testid="stDataFrame"] td { background: #ffffff !important; color: #333340 !important; }
+.stSlider label { color: #6c6c80 !important; }
+.stApp .stCaption { color: #6c6c80 !important; }
 """
 
 st.title("🏠 Рынок аренды квартир в Минске")
@@ -105,6 +115,8 @@ def load_model():
 
 try:
     df = load_data()
+    if 'price_usd' in df.columns:
+        df = df[df['price_usd'] < 50000].copy()
 except Exception as e:
     st.error(f"Ошибка загрузки данных: {e}")
     st.stop()
@@ -130,8 +142,8 @@ css_path = os.path.join(os.path.dirname(__file__), 'style.css')
 if os.path.exists(css_path):
     with open(css_path, 'r') as f:
         base_css = f.read()
-    dark_override = DARK_CSS if dark_theme else ''
-    st.markdown(f'<style>{base_css}{dark_override}</style>', unsafe_allow_html=True)
+    light_override = LIGHT_CSS if not dark_theme else ''
+    st.markdown(f'<style>{base_css}{light_override}</style>', unsafe_allow_html=True)
 
 st.sidebar.divider()
 st.sidebar.header("🔍 Фильтры")
@@ -401,25 +413,32 @@ with tab4:
             col1, col2 = st.columns(2)
 
             with col1:
+                price_col = 'median_price' if 'median_price' in df_ts_filtered.columns else 'price_usd'
                 avg_by_rooms = df_ts_filtered.groupby(
                     ['snapshot_date', 'rooms'], as_index=False
-                )['price_usd'].mean()
+                )[price_col].mean()
 
                 fig = px.line(
                     avg_by_rooms,
-                    x='snapshot_date', y='price_usd', color='rooms',
-                    title="Средняя цена по комнатам по дням",
+                    x='snapshot_date', y=price_col, color='rooms',
+                    title="Медианная цена по комнатам по дням",
                     markers=True,
                     color_discrete_sequence=px.colors.qualitative.Bold,
-                    labels={'snapshot_date': 'Дата', 'price_usd': 'Средняя цена (USD)', 'rooms': 'Комнат'},
+                    labels={'snapshot_date': 'Дата', price_col: 'Медианная цена (USD)', 'rooms': 'Комнат'},
                 )
                 fig.update_layout(height=400)
                 st.plotly_chart(fig, use_container_width=True)
 
             with col2:
-                count_by_date = df_ts_filtered.groupby(
-                    'snapshot_date', as_index=False
-                ).size().rename(columns={'size': 'count'})
+                count_col = 'count' if 'count' in df_ts_filtered.columns else None
+                if count_col:
+                    count_by_date = df_ts_filtered.groupby(
+                        'snapshot_date', as_index=False
+                    )[count_col].sum()
+                else:
+                    count_by_date = df_ts_filtered.groupby(
+                        'snapshot_date', as_index=False
+                    ).size().rename(columns={'size': 'count'})
 
                 fig = px.bar(
                     count_by_date,
@@ -473,53 +492,28 @@ with tab4:
 with tab5:
     st.subheader("🌡️ Дополнительная аналитика")
 
-    if df_ts is None or df_ts.empty:
-        st.warning("Нет данных временных рядов для доп. аналитики.")
+    metro_col = 'metro_station' if 'metro_station' in df_filtered.columns else None
+    has_metro = metro_col and df_filtered[metro_col].notna().any()
+
+    if not has_metro:
+        st.info("Нет данных по станциям метро. Данные появятся после нескольких дней сбора.")
     else:
-        ts5_sources = st.multiselect(
-            "Источник",
-            options=df_ts['source'].unique(),
-            format_func=lambda x: SOURCE_LABELS.get(x, x),
-            default=df_ts['source'].unique(),
-            key='ts5_source',
+        df_metro = df_filtered[df_filtered[metro_col].notna() & (df_filtered[metro_col] != '')].copy()
+        metro_stats = df_metro.groupby(metro_col, as_index=False)['price_usd'].mean()
+        metro_stats = metro_stats.sort_values('price_usd', ascending=False)
+
+        fig = px.bar(
+            metro_stats.head(15),
+            x='price_usd', y=metro_col,
+            title="Станции метро по средней цене аренды",
+            orientation='h',
+            color='price_usd',
+            color_continuous_scale='Viridis',
+            text_auto='.0f',
+            labels={'price_usd': 'Средняя цена (USD)', metro_col: 'Станция метро'},
         )
-        ts5_rooms = st.multiselect(
-            "Комнат",
-            options=sorted(df_ts['rooms'].dropna().unique().astype(int)),
-            format_func=lambda x: ROOM_LABELS.get(x, f'{x} комн.'),
-            default=[1, 2, 3],
-            key='ts5_rooms',
-        )
-
-        df_ts5 = df_ts[
-            (df_ts['source'].isin(ts5_sources)) &
-            (df_ts['rooms'].isin(ts5_rooms))
-        ].copy()
-
-        if df_ts5.empty:
-            st.info("Нет данных для выбранных фильтров.")
-        else:
-            if 'metro_station' in df_ts5.columns:
-                metro_stats = df_ts5[
-                    df_ts5['metro_station'].notna() & (df_ts5['metro_station'] != '')
-                ].groupby('metro_station', as_index=False)['price_usd'].mean()
-                metro_stats = metro_stats.sort_values('price_usd', ascending=False)
-
-                if not metro_stats.empty:
-                    fig = px.bar(
-                        metro_stats.head(15),
-                        x='price_usd', y='metro_station',
-                        title="Станции метро по средней цене аренды",
-                        orientation='h',
-                        color='price_usd',
-                        color_continuous_scale='Viridis',
-                        text_auto='.0f',
-                        labels={'price_usd': 'Средняя цена (USD)', 'metro_station': 'Станция метро'},
-                    )
-                    fig.update_layout(height=600, xaxis_title="Средняя цена (USD)", yaxis_title="")
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.info("Нет данных по станциям метро. Данные появятся после нескольких дней сбора.")
+        fig.update_layout(height=600, xaxis_title="Средняя цена (USD)", yaxis_title="")
+        st.plotly_chart(fig, use_container_width=True)
 
 # ── TAB 6: НА КАРТЕ ──
 with tab6:
@@ -537,16 +531,24 @@ with tab6:
     else:
         fig = go.Figure()
 
-        fig.add_trace(go.Densitymapbox(
+        price_p99 = df_map['price_usd'].quantile(0.99)
+
+        fig.add_trace(go.Scattermapbox(
             lat=df_map[lat_col],
             lon=df_map[lon_col],
-            z=df_map['price_usd'],
-            radius=15,
-            colorscale='Viridis',
-            zmin=df_map['price_usd'].quantile(0.05),
-            zmax=df_map['price_usd'].quantile(0.95),
-            colorbar=dict(title="Цена (USD)", thickness=15),
-            hovertemplate='Цена: $%{z:.0f}<br>Лат: %{lat:.4f}<br>Лон: %{lon:.4f}<extra></extra>',
+            mode='markers',
+            marker=dict(
+                size=5,
+                color=df_map['price_usd'],
+                colorscale='Viridis',
+                cmin=df_map['price_usd'].quantile(0.05),
+                cmax=price_p99,
+                opacity=0.7,
+                colorbar=dict(title="Цена (USD)", thickness=15),
+            ),
+            text=[f"${p:.0f}" for p in df_map['price_usd']],
+            hovertemplate='Цена: %{text}<br>Лат: %{lat:.4f}<br>Лон: %{lon:.4f}<extra></extra>',
+            name='Объявления',
         ))
 
         metro_lats = [v[0] for v in STATION_COORDS.values()]
@@ -560,7 +562,7 @@ with tab6:
             marker=dict(size=8, color='#e94560', symbol='circle'),
             text=metro_names,
             textposition='top center',
-            textfont=dict(size=9, color='#1a1a2e'),
+            textfont=dict(size=9, color='white'),
             name='Станции метро',
             hovertemplate='%{text}<extra></extra>',
         ))

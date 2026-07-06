@@ -194,4 +194,4 @@ def generate_pdf(df_full, df_filtered, filters_text):
     except Exception:
         pass  # charts are optional
 
-    return pdf.output()
+    return bytes(pdf.output())
