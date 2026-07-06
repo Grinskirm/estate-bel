@@ -775,9 +775,12 @@ if st.sidebar.button("📄 Сгенерировать PDF", type="primary"):
             st.session_state.pdf_data = None
 
 if st.session_state.get('pdf_data') is not None:
+    pdf_bytes = st.session_state.pdf_data
+    if isinstance(pdf_bytes, bytearray):
+        pdf_bytes = bytes(pdf_bytes)
     st.sidebar.download_button(
         label="📄 Скачать PDF",
-        data=st.session_state.pdf_data,
+        data=pdf_bytes,
         file_name=f'report_minsk_{datetime.now().strftime("%Y-%m-%d")}.pdf',
         mime='application/pdf',
     )
