@@ -30,4 +30,4 @@ jobs:
           commit_message: "📊 daily scrape"
           commit_user_name: "scrape-bot"
           commit_user_email: "scrape-bot@users.noreply.github.com"
-          file_pattern: "data/processed/timeseries_data.csv data/estate.db"
+          file_pattern: "data/raw/*.csv data/processed/timeseries_data.csv data/processed/rentals_clean.csv data/estate.db"

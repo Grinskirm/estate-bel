@@ -102,6 +102,10 @@ def save_listings(df, source, snapshot_date):
         if c in df_to_save.columns:
             df_to_save[c] = pd.to_numeric(df_to_save[c], errors='coerce')
 
+    # Remove old rows for this source+date to avoid duplicates on re-run
+    conn.execute('DELETE FROM listings WHERE source = ? AND snapshot_date = ?', (source, snapshot_date))
+    conn.commit()
+
     df_to_save.to_sql('listings', conn, if_exists='append', index=False)
     conn.commit()
     conn.close()

@@ -194,4 +194,4 @@ def generate_pdf(df_full, df_filtered, filters_text):
     except Exception:
         pass  # charts are optional
 
-    return pdf.output(dest='S').encode('latin-1', errors='replace')
+    return pdf.output()

@@ -176,6 +176,16 @@ def build_timeseries():
     rebuild_db_ts()
     print('  SQLite: timeseries rebuilt')
 
+    # Export listings to CSV for dashboard fallback
+    from src.database import get_connection as get_conn2, DB_PATH
+    conn2 = get_conn2()
+    df_listings = pd.read_sql_query('SELECT * FROM listings', conn2)
+    conn2.close()
+    if not df_listings.empty:
+        rentals_path = 'data/processed/rentals_clean.csv'
+        df_listings.to_csv(rentals_path, index=False)
+        print(f'  Exported {len(df_listings)} listings to {rentals_path}')
+
 
 if __name__ == '__main__':
     build_timeseries()

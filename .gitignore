@@ -5,7 +5,7 @@ __pycache__/
 !models/rental_price_model.pkl
 *.html
 .DS_Store
-data/raw/*.csv
+#data/raw/*.csv
 data/processed/*.csv
 !data/processed/timeseries_data.csv
 !data/processed/rentals_clean.csv
