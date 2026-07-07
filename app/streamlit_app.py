@@ -19,40 +19,34 @@ st.set_page_config(
     page_title="Аренда Минска — Дашборд",
     page_icon="🏠",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-LIGHT_CSS = """
-.stApp { background: #f8f9fa !important; }
-[data-testid="stMetric"] {
-    background: linear-gradient(135deg, #ffffff 0%, #f0f2f6 100%) !important;
-    border-color: #e8e8ef !important;
+PLOTLY_CONFIG = {
+    'displayModeBar': True,
+    'modeBarButtonsToRemove': ['sendDataToCloud', 'lasso2d'],
+    'displaylogo': False,
+    'toImageButtonOptions': {
+        'format': 'png', 'filename': 'chart', 'height': 600, 'width': 900,
+    },
 }
-[data-testid="stMetric"] label { color: #6c6c80 !important; }
-[data-testid="stMetric"] [data-testid="stMetricValue"] { color: #1a1a2e !important; }
-[data-testid="stDataFrame"] { border-color: #e8e8ef !important; }
-.streamlit-expanderHeader { color: #6c6c80 !important; }
-.stSelectbox > div > div { border-color: #e0e0e8 !important; background: #ffffff !important; color: #1a1a2e !important; }
-div[data-baseweb="select"] div[role="listbox"] { background: #ffffff !important; border-color: #e0e0e8 !important; }
-div[data-baseweb="select"] li[role="option"] { background: #ffffff !important; color: #1a1a2e !important; }
-div[data-baseweb="select"] li[role="option"]:hover { background: #f0f2f6 !important; }
-.stNumberInput > div > div > input { border-color: #e0e0e8 !important; background: #ffffff !important; color: #1a1a2e !important; }
-.stNumberInput label { color: #6c6c80 !important; }
-.stMultiSelect > div { background: #ffffff !important; border-color: #e0e0e8 !important; }
-.stAlert { background: #ffffff !important; color: #1a1a2e !important; }
-footer { color: #a0a0b0 !important; }
-.stApp h1, .stApp h2, .stApp h3, .stApp h4 { color: #1a1a2e !important; }
-.stApp .stMarkdown p, .stApp .stMarkdown li, .stApp .stMarkdown span { color: #333340; }
-button[data-baseweb="tab"] { color: #6c6c80 !important; }
-button[data-baseweb="tab"][aria-selected="true"] { color: #e94560 !important; }
-.stCheckbox label, div[data-testid="column"] .stCheckbox label { color: #333340 !important; }
-.stRadio label, div[data-testid="column"] .stRadio label { color: #333340 !important; }
-.stButton > button { background: #ffffff; color: #333340; border-color: #e0e0e8; }
-.stDownloadButton > button { background: #ffffff !important; color: #333340 !important; border-color: #e0e0e8 !important; }
-[data-testid="stDataFrame"] th { background: #f0f2f6 !important; color: #1a1a2e !important; }
-[data-testid="stDataFrame"] td { background: #ffffff !important; color: #333340 !important; }
-.stSlider label { color: #6c6c80 !important; }
-.stApp .stCaption { color: #6c6c80 !important; }
-"""
+
+CHART_LAYOUT = dict(
+    font=dict(family='-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Inter, sans-serif'),
+    hovermode='x unified',
+    hoverlabel=dict(
+        bordercolor='rgba(0,0,0,0)',
+        font=dict(size=12),
+    ),
+    margin=dict(l=50, r=20, t=40, b=50),
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+)
+
+GRID_STYLE = dict(
+    gridcolor='rgba(128,128,152,0.12)',
+    zerolinecolor='rgba(128,128,152,0.12)',
+)
 
 st.title("🏠 Рынок аренды квартир в Минске")
 st.caption("Данные собраны с Kufar.by и Realt.by")
@@ -141,21 +135,20 @@ def make_pdf(df_data, df_filtered_data, filters_text):
     return generate_pdf(df_data, df_filtered_data, filters_text)
 
 
-# ── САЙДБАР — ТЕМА / CSS ──
-dark_theme = st.sidebar.toggle("🌙 Тёмная тема", value=True)
-
-css_path = os.path.join(os.path.dirname(__file__), 'style.css')
-if os.path.exists(css_path):
-    with open(css_path, 'r') as f:
-        base_css = f.read()
-    light_override = LIGHT_CSS if not dark_theme else ''
-    st.markdown(f'<style>{base_css}{light_override}</style>', unsafe_allow_html=True)
-
-# Plotly dark/light template
-pio.templates.default = 'plotly_dark' if dark_theme else 'plotly_white'
-
-st.sidebar.divider()
-st.sidebar.header("🔍 Фильтры")
+# ── САЙДБАР — ТЕМА / ФИЛЬТРЫ ──
+with st.sidebar:
+    dark_theme = st.toggle("🌙 Тёмная тема", value=False)
+    pio.templates.default = 'plotly_dark' if dark_theme else 'plotly_white'
+    if dark_theme:
+        st.markdown("""
+        <style>
+        .stApp { background: #0e1117; }
+        section[data-testid="stSidebar"] { background: #262730; }
+        .stApp h1, .stApp h2, .stApp h3, .stApp h4 { color: #fafafa !important; }
+        footer { color: #808495 !important; }
+        </style>
+        """, unsafe_allow_html=True)
+    st.markdown("##### 🔍 Фильтры")
 
 sources = st.sidebar.multiselect(
     "Источник",
@@ -240,19 +233,20 @@ with tab1:
             color_discrete_sequence=['#e94560'],
             labels={'price_usd': 'Цена (USD/мес)'},
         )
-        fig.update_yaxes(title_text='Количество объявлений')
-        fig.update_layout(showlegend=False, height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_yaxes(title_text='Количество объявлений', **GRID_STYLE)
+        fig.update_layout(**CHART_LAYOUT, showlegend=False, height=400)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     with col2:
         fig = px.box(
             df_filtered, x='rooms', y='price_usd',
             title="Цена по количеству комнат",
-            color_discrete_sequence=['#3498db'],
+            color_discrete_sequence=['#e94560'],
             labels={'rooms': 'Комнат', 'price_usd': 'Цена (USD/мес)'},
+            points='outliers',
         )
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(**CHART_LAYOUT, showlegend=False, height=400)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     st.subheader("Статистика по площади")
     fig = px.scatter(
@@ -263,8 +257,8 @@ with tab1:
         color_discrete_sequence=px.colors.qualitative.Bold,
         labels={'area_total': 'Площадь (м²)', 'price_usd': 'Цена (USD/мес)', 'rooms': 'Комнат'},
     )
-    fig.update_layout(height=400)
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(**CHART_LAYOUT, height=400)
+    st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
 # ── TAB 2: ПО КОМНАТАМ ──
 with tab2:
@@ -289,8 +283,10 @@ with tab2:
             text_auto='.0f',
             labels={'rooms_label': '', 'mean_price': 'Средняя цена (USD)'},
         )
-        fig.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(**CHART_LAYOUT, showlegend=False, height=400)
+        fig.update_xaxes(**GRID_STYLE)
+        fig.update_yaxes(**GRID_STYLE)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     with col2:
         fig = px.histogram(
@@ -300,9 +296,9 @@ with tab2:
             color_discrete_sequence=px.colors.qualitative.Bold,
             labels={'price_usd': 'Цена (USD/мес)', 'rooms': 'Комнат'},
         )
-        fig.update_yaxes(title_text='Количество')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_yaxes(title_text='Количество', **GRID_STYLE)
+        fig.update_layout(**CHART_LAYOUT, height=400)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     with st.expander("📋 Таблица статистики по комнатам"):
         stats = df_filtered.groupby('rooms').agg(
@@ -313,7 +309,7 @@ with tab2:
             Макс_цена=('price_usd', 'max'),
             Средняя_площадь=('area_total', 'mean'),
         ).round(0).rename_axis('Комнат')
-        st.dataframe(stats, use_container_width=True)
+        st.dataframe(stats, width='stretch')
 
 # ── TAB 3: KUFAR VS REALT ──
 with tab3:
@@ -329,7 +325,7 @@ with tab3:
             title="Доля объявлений по источникам",
             color_discrete_sequence=['#e94560', '#3498db'],
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     with col2:
         fig = px.box(
@@ -338,9 +334,10 @@ with tab3:
             color='source',
             color_discrete_sequence=['#e94560', '#3498db'],
             labels={'source': 'Источник', 'price_usd': 'Цена (USD/мес)'},
+            points='outliers',
         )
-        fig.update_layout(showlegend=False, height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(**CHART_LAYOUT, showlegend=False, height=400)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     st.subheader("Детальное сравнение")
 
@@ -365,8 +362,10 @@ with tab3:
             text_auto='.0f',
             labels={'source': '', 'mean_price': 'Средняя цена (USD)'},
         )
-        fig.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(**CHART_LAYOUT, showlegend=False, height=400)
+        fig.update_xaxes(**GRID_STYLE)
+        fig.update_yaxes(**GRID_STYLE)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     with col2:
         fig = px.bar(
@@ -378,8 +377,10 @@ with tab3:
             text_auto='.1f',
             labels={'source': '', 'agency_pct': '% агентств'},
         )
-        fig.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(**CHART_LAYOUT, showlegend=False, height=400)
+        fig.update_xaxes(**GRID_STYLE)
+        fig.update_yaxes(**GRID_STYLE)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
     with st.expander("📋 Таблица сравнения источников"):
         src_table = df_filtered.groupby('source').agg(
@@ -392,7 +393,7 @@ with tab3:
         src_table['% агентств'] = (
             src_table['Агентств'] / src_table['Объявлений'] * 100).round(1)
         src_table.index = src_table.index.map(lambda x: SOURCE_LABELS.get(x, x))
-        st.dataframe(src_table, use_container_width=True)
+        st.dataframe(src_table, width='stretch')
 
 # ── TAB 4: ДИНАМИКА ЦЕН ──
 with tab4:
@@ -442,8 +443,10 @@ with tab4:
                     color_discrete_sequence=px.colors.qualitative.Bold,
                     labels={'snapshot_date': 'Дата', price_col: 'Медианная цена (USD)', 'rooms': 'Комнат'},
                 )
-                fig.update_layout(height=400)
-                st.plotly_chart(fig, use_container_width=True)
+                fig.update_layout(**CHART_LAYOUT, height=400)
+                fig.update_xaxes(**GRID_STYLE)
+                fig.update_yaxes(**GRID_STYLE)
+                st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
             with col2:
                 count_col = 'count' if 'count' in df_ts_filtered.columns else None
@@ -464,8 +467,10 @@ with tab4:
                     text_auto=True,
                     labels={'snapshot_date': 'Дата', 'count': 'Количество объявлений'},
                 )
-                fig.update_layout(height=400)
-                st.plotly_chart(fig, use_container_width=True)
+                fig.update_layout(**CHART_LAYOUT, height=400)
+                fig.update_xaxes(**GRID_STYLE)
+                fig.update_yaxes(**GRID_STYLE)
+                st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
             col1, col2 = st.columns(2)
 
@@ -485,8 +490,10 @@ with tab4:
                     color_discrete_sequence=['#e94560', '#3498db'],
                     labels={'snapshot_date': 'Дата', 'price_per_m2': 'Цена за м² (USD)', 'source': 'Источник'},
                 )
-                fig.update_layout(height=400)
-                st.plotly_chart(fig, use_container_width=True)
+                fig.update_layout(**CHART_LAYOUT, height=400)
+                fig.update_xaxes(**GRID_STYLE)
+                fig.update_yaxes(**GRID_STYLE)
+                st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
             with col2:
                 avg_by_source = df_ts_filtered.groupby(
@@ -501,8 +508,10 @@ with tab4:
                     color_discrete_sequence=['#e94560', '#3498db'],
                     labels={'snapshot_date': 'Дата', 'price_usd': 'Средняя цена (USD)', 'source': 'Источник'},
                 )
-                fig.update_layout(height=400)
-                st.plotly_chart(fig, use_container_width=True)
+                fig.update_layout(**CHART_LAYOUT, height=400)
+                fig.update_xaxes(**GRID_STYLE)
+                fig.update_yaxes(**GRID_STYLE)
+                st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
 # ── TAB 5: ДОПОЛНИТЕЛЬНО ──
 with tab5:
@@ -528,8 +537,14 @@ with tab5:
             text_auto='.0f',
             labels={'price_usd': 'Средняя цена (USD)', metro_col: 'Станция метро'},
         )
-        fig.update_layout(height=600, xaxis_title="Средняя цена (USD)", yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(
+            **CHART_LAYOUT,
+            height=600,
+            xaxis_title="Средняя цена (USD)",
+            yaxis=dict(title=""),
+        )
+        fig.update_xaxes(**GRID_STYLE)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
 # ── TAB 6: НА КАРТЕ ──
 with tab6:
@@ -591,9 +606,10 @@ with tab6:
             height=650,
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(yanchor='top', y=0.99, xanchor='left', x=0.01),
+            font=dict(family='-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Inter, sans-serif'),
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch', config=PLOTLY_CONFIG)
 
 # ── TAB 7: КАЛЬКУЛЯТОР ЦЕНЫ ──
 with tab7:

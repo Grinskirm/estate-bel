@@ -64,7 +64,7 @@ def read_kufar(path, snapshot_date):
     df = pd.read_csv(path, dtype={'rooms': 'float64', 'floor': 'float64', 'floors_total': 'float64'})
     df['source'] = 'kufar'
     df['snapshot_date'] = snapshot_date
-    rename = {v: k for k, v in KUFAR_COLS.items()}
+    rename = dict(KUFAR_COLS)
     df = df.rename(columns=rename)
     for col in KUFAR_COLS.values():
         if col not in df.columns:
@@ -76,7 +76,7 @@ def read_realt(path, snapshot_date):
     df = pd.read_csv(path, dtype={'rooms': 'float64', 'floor': 'float64', 'floors_total': 'float64'})
     df['source'] = 'realt'
     df['snapshot_date'] = snapshot_date
-    rename = {v: k for k, v in REALT_COLS.items()}
+    rename = dict(REALT_COLS)
     df = df.rename(columns=rename)
     for col in REALT_COLS.values():
         if col not in df.columns:
